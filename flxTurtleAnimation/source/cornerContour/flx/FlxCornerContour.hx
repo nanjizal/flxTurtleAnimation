@@ -30,6 +30,10 @@ inline
 function rgbInt( c: Int ): Int
     return ( c << 8 ) >> 8;
 
+inline
+function getAlpha( c: Float ): Float
+    return ((Std.int(c) >> 24) & 255 )/255;
+    
 class FlxCornerContour extends FlxSprite {
     public var pen2D: Pen2D;
     public var sketcher: Sketcher;
@@ -57,44 +61,19 @@ class FlxCornerContour extends FlxSprite {
         var pen = pen2D;
         var data = pen.arr;
         var totalTriangles = Std.int( data.size/7 );
+        FlxSpriteUtil.beginDraw( null, null );
+        var fg = FlxSpriteUtil.flashGfx;
         for( i in 0...totalTriangles ){
             pen.pos = i;
-            // draw to canvas surface
-            triangle2DFill( data.ax, data.ay
-                , data.bx, data.by
-                , data.cx, data.cy
-                , Std.int( data.color ) );
+            fg.lineStyle( 0, 0xFFFFFF, 0 );
+            fg.beginFill( rgbInt( Std.int( data.color ) ), getAlpha( data.color ) );
+            fg.moveTo( data.ax, data.ay );
+            fg.lineTo( data.bx, data.by );
+            fg.lineTo( data.cx, data.cy );
+            fg.lineTo( data.ax, data.ay );
+            fg.endFill();
         }
-    }
-    public inline
-    function triangle2DFill( ax: Float, ay:Float
-                           , bx: Float, by: Float
-                           , cx: Float, cy: Float
-                           , color: Null<Int> )
-    {
-        drawTriangle( ax, ay, bx, by, cx, cy, color );
-        return 1;
-    }
-    public inline
-    function triangle2DFillandAlpha( ax: Float, ay: Float
-                                   , bx: Float, by: Float
-                                   , cx: Float, cy: Float
-                                   , color: Null<Int>, ?alpha: Null<Float> ): Int {
-        if( alpha != 1. ) color = colorAlpha( color, alpha ); 
-        drawTriangle( ax, ay, bx, by, cx, cy, color );
-        return 1;
-    }
-    inline
-    function drawTriangle( ax: Float, ay:Float, bx: Float, by: Float, cx: Float, cy: Float, FillColor:FlxColor = FlxColor.WHITE, ?lineStyle:LineStyle,
-                ?drawStyle:DrawStyle ){
-        var fg = FlxSpriteUtil.flashGfx;
-        FlxSpriteUtil.beginDraw( FillColor, lineStyle );
-        fg.moveTo( ax, ay );
-        fg.lineTo( bx, by );
-        fg.lineTo( cx, cy );
-        fg.lineTo( ax, ay );
-        FlxSpriteUtil.endDraw( this, drawStyle );
-        return this;
+        FlxSpriteUtil.endDraw( this, {} );
     }
     public
     function whiteBackground(){
